@@ -28,3 +28,11 @@ Then run this:
 ```
 runGitHub("LeaveViz", "johnielb")
 ```
+
+## Using your own dataset
+Connect to a source that has the following data:
+* "ReportDate" the date these data are true for
+* "EmployeeStartDate"
+* "BusinessGroup" department employee belongs to
+* "FutureBookedLeave" leave organised in future with employee's manager
+I used a csv file, connected using the read.csv() function.
