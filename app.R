@@ -13,7 +13,7 @@ ui <- fluidPage(
       width = 2,
       selectInput("date", "Report date", choices="2019-11-30", selected="2019-11-30"),
       radioButtons("leaveType", "Leave type", choices = list("Entitled leave"=0, "Entitled minus booked leave"=1), selected=0),
-      checkboxGroupInput("bizGroup", "Business group", choices = list("NA")
+      checkboxGroupInput("bizGroup", "Business department", choices = list("NA")
       ),
       actionButton("allGroups", label="Select all groups"),
       actionButton("noGroups", label="Deselect all groups"),
@@ -207,7 +207,7 @@ server <- function(input, output, session) {
       scale_x_continuous(minor_breaks = seq(0,260,5), breaks = seq(0,260,20)) +
       scale_y_continuous(minor_breaks = seq(-40,100,10), breaks = seq(-40,100,20)) +
       # legend title
-      scale_color_discrete(name = "Business group") +
+      scale_color_discrete(name = "Business department") +
       # ensure all of envelope seen every time
       expand_limits(x = c(0,270), y=c(-40,100)) +
       annotation_custom(grob=textGrob("Upper policy bound",gp=gpar(col="#ff0000")), xmin=268, xmax=268, ymin=27, ymax=27) +
