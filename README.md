@@ -1,4 +1,5 @@
 # LeaveViz
+![Screenshot](https://raw.githubusercontent.com/johnielb/LeaveViz/master/viz.png)
 My first professional project uses R and Shiny to visualise leave entitlement for each employee in a business and the business' policy. Leave entitlement is a liability for a business as a promise to its employees. The visualisation can be manipulated to only show certain business departments, employees of certain seniority, and per report date. Future booked leave can also be taken into account.
 All data is generated randomly every time it is open, and hence the assumptions for this particular scenario are:
 * Those employed less than a year do not have entitled leave, as entitlement is only granted on the anniversary of their employment
