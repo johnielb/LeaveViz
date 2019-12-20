@@ -9,3 +9,15 @@ All data is generated randomly every time it is open, and hence the assumptions 
 * Business has 5 generically named departments
 * Can't take leave on non-business days, hence all calculations and visualisations use business days only
 * Business follows the Wellington, NZ holiday calendar (calendars have been created for Auckland and Christchurch regional holidays)
+
+### Dependencies
+* shiny
+* bizdays
+* tidyverse
+* lubridate
+* grid
+
+Run this on the R console to install them all at once:
+```
+install.packages(c("shiny", "bizdays", "tidyverse", "lubridate", "grid"))
+```
