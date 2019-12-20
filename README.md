@@ -11,7 +11,9 @@ All data is generated randomly every time it is open, and hence the assumptions 
 * Can't take leave on non-business days, hence all calculations and visualisations use business days only
 * Business follows the Wellington, NZ holiday calendar (calendars have been created for Auckland and Christchurch regional holidays)
 
-### Dependencies
+
+## How to Run
+Ensure these libraries are installed and up-to-date (older versions were buggy for me):
 * shiny
 * bizdays
 * tidyverse
@@ -21,4 +23,8 @@ All data is generated randomly every time it is open, and hence the assumptions 
 Run this on the R console to install them all at once:
 ```
 install.packages(c("shiny", "bizdays", "tidyverse", "lubridate", "grid"))
+```
+Then run this:
+```
+runGitHub("LeaveViz", "johnielb")
 ```
