@@ -44,12 +44,13 @@ server <- function(input, output, session) {
   
   create.calendar('wlg', holidays=wlgHolidays, weekdays = c('sunday', 'saturday'), 
                   adjust.from = adjust.next, adjust.to = adjust.previous)
+  
   # days to add on an anniversary
   BASELINE_DAYS <- 30
   # minimum days that can be carried over on an anniversary
-  MIN_DAYS <- 5
+  CARRYOVER <- 5
   # maximum days someone has on an anniversary
-  MAX_DAYS <- BASELINE_DAYS + MIN_DAYS
+  MAX_DAYS <- BASELINE_DAYS + CARRYOVER
   
   upload <- reactive({
     sampleSize <- 400 # should always be a multiple of 10
@@ -69,6 +70,7 @@ server <- function(input, output, session) {
     }
     
     # ensures more people are employed for 5-20 years
+    # guarantees 10% are employed for every other age category
     balance$EmployeeStartDate <- c(
       sample(getDateSequence(0,365), sampleSize*0.1),
       sample(getDateSequence(365,730), sampleSize*0.1),
@@ -110,13 +112,14 @@ server <- function(input, output, session) {
       balance$YearsEmployed[i] <- yearsEmployed
     }
     
+    # random amount of leap days, more for those employed longer
     balance$EntitledDays <- c(
       rnorm(sampleSize*0.1, mean=0, sd = 7),
       rnorm(sampleSize*0.1, mean=4, sd = 7),
       rnorm(sampleSize*0.1, mean=14, sd = 14),
       rnorm(sampleSize*0.1, mean=20, sd = 21),
       rnorm(sampleSize*0.6, mean=25, sd = 21)
-    ) - (balance$DaysSinceAnniversary - 50) * 0.05
+    ) - (balance$DaysSinceAnniversary - 100) * 0.1
     
     # first years must comply with policy of having no entitled leave
     for (i in 1:(sampleSize*0.1)) {
@@ -199,7 +202,7 @@ server <- function(input, output, session) {
       geom_point(aes(y = SelectedLeave, colour = BusinessGroup), size=3) + 
       # envelope for spender
       geom_segment(x=0, xend=bizdaysInYear-BASELINE_DAYS, y=MAX_DAYS, yend=MAX_DAYS, color = "#ff0000", size = 1) +
-      geom_segment(x=bizdaysInYear-BASELINE_DAYS, xend=bizdaysInYear, y=MAX_DAYS, yend=MIN_DAYS, color = "#ff0000", size = 1) +
+      geom_segment(x=bizdaysInYear-BASELINE_DAYS, xend=bizdaysInYear, y=MAX_DAYS, yend=CARRYOVER, color = "#ff0000", size = 1) +
       # envelope for saver
       geom_segment(x=0, xend=BASELINE_DAYS, y=BASELINE_DAYS, yend=0, color = "#007700", size = 1) +
       geom_segment(x=BASELINE_DAYS, xend=bizdaysInYear, y=0, yend=0, color = "#007700", size = 1) +
