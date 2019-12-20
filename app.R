@@ -71,7 +71,9 @@ server <- function(input, output, session) {
     # ensures more people are employed for 5-20 years
     balance$EmployeeStartDate <- c(
       sample(getDateSequence(0,365), sampleSize*0.1),
-      sample(getDateSequence(365,1461), sampleSize*0.3),
+      sample(getDateSequence(365,730), sampleSize*0.1),
+      sample(getDateSequence(730,1095), sampleSize*0.1),
+      sample(getDateSequence(1095,1461), sampleSize*0.1),
       sample(getDateSequence(1461,7305), sampleSize*0.5),
       sample(getDateSequence(7305,18262), sampleSize*0.1)
     )
