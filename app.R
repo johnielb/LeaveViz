@@ -52,7 +52,7 @@ server <- function(input, output, session) {
   # maximum days someone has on an anniversary
   MAX_DAYS <- BASELINE_DAYS + CARRYOVER
   
-  upload <- reactive({
+  createData <- reactive({
     sampleSize <- 400 # should always be a multiple of 10
     balance <- data.frame(BusinessGroup = integer(sampleSize))
     balance$BusinessGroup <- as.factor(sample(c(
@@ -80,37 +80,37 @@ server <- function(input, output, session) {
       sample(getDateSequence(7305,18262), sampleSize*0.1)
     )
     
-    # calculate days since anniversary and years employed
-    for (i in 1:nrow(balance)) {
-      reportDate <- balance$ReportDate[i]
-      startDate <- balance$EmployeeStartDate[i]
-      daysEmployed <- as.numeric(difftime(reportDate, startDate, units="days"))
+    getYearsEmployed <- function(x) {
+      daysEmployed <- as.numeric(difftime(x$ReportDate, x$EmployeeStartDate, units="days"))
       
       # 365th day of non leap year should be floor()'d to 1 but will show up as 0 because it's
       # only 0.999 of a year, difftime() doesn't deal in years because of inconsistency
       yearsEmployed <- daysEmployed / 365.25
-      if (month(reportDate) == month(startDate) && day(reportDate) == day(startDate)) {
+      if (month(x$ReportDate) == month(x$EmployeeStartDate) && day(x$ReportDate) == day(x$EmployeeStartDate)) {
         yearsEmployed <- yearsEmployed + (floor(yearsEmployed)+1)*0.0007
         # 1/1461 = 0.25/365.25 (the error) multiplied by actual integer years employed
       }
       # only round after adjusting
-      yearsEmployed <- floor(yearsEmployed)
-      
+      floor(yearsEmployed)
+    }
+    
+    balance$YearsEmployed <- getYearsEmployed(balance)
+    
+    getDSA <- function(x) {
       # allows shifting start date to relevant year's anniversary
-      annivDate <- startDate
-      
+      annivDate <- x$EmployeeStartDate
       # love people with leap day anniversaries
-      if (day(annivDate) == 29 && month(annivDate) == 2 && yearsEmployed %% 4 != 0) {
+      if (day(annivDate) == 29 && month(annivDate) == 2 && x$YearsEmployed %% 4 != 0) {
         day(annivDate) <- 1
         month(annivDate) <- 3
       } 
-      
       # shift start date to last anniversary since sim date
-      year(annivDate) <- year(annivDate) + yearsEmployed
+      year(annivDate) <- year(annivDate) + x$YearsEmployed
       
-      balance$DaysSinceAnniversary[i] <- as.numeric(bizdays(annivDate,reportDate,'wlg') + 1)
-      balance$YearsEmployed[i] <- yearsEmployed
+      as.numeric(bizdays(annivDate,x$ReportDate,'wlg') + 1)
     }
+    
+    balance$DaysSinceAnniversary <- getDSA(balance)
     
     # random amount of leap days, more for those employed longer
     balance$EntitledDays <- c(
@@ -122,9 +122,8 @@ server <- function(input, output, session) {
     ) - (balance$DaysSinceAnniversary - 100) * 0.1
     
     # first years must comply with policy of having no entitled leave
-    for (i in 1:(sampleSize*0.1)) {
-      if (balance$EntitledDays[i] > 0) balance$EntitledDays[i] = 0
-    }
+    balance <- balance %>%
+      mutate(EntitledDays = replace(EntitledDays, YearsEmployed == 0 & EntitledDays > 0, 0))
     
     # skewed towards booking less leave hence beta dist
     balance$FutureBookedLeave <- as.integer(rbeta(sampleSize,0.5,5)*30)
@@ -144,7 +143,7 @@ server <- function(input, output, session) {
   # handle Select all groups being clicked, only evaluated if $allGroups changes
   observe({
     if (input$allGroups > 0) {
-      bizGroupList <- unique(upload()$BusinessGroup)
+      bizGroupList <- unique(createData()$BusinessGroup)
       updateCheckboxGroupInput(session, "bizGroup", choices=bizGroupList, selected=bizGroupList)
     }
   })
@@ -152,14 +151,13 @@ server <- function(input, output, session) {
   # handle Deselect all groups being clicked
   observe({
     if (input$noGroups > 0) {
-      bizGroupList <- unique(upload()$BusinessGroup)
+      bizGroupList <- unique(createData()$BusinessGroup)
       updateCheckboxGroupInput(session, "bizGroup", choices=bizGroupList)
     }
   })
   
   output$plot <- renderPlot({
-    start <- Sys.time()
-    balance <- upload() %>%
+    balance <- createData() %>%
       subset(BusinessGroup %in% input$bizGroup) %>% 
       # filter by years employed
       filter(
@@ -174,7 +172,6 @@ server <- function(input, output, session) {
       filter(
         ReportDate == input$date
       )
-    end <- Sys.time()
     
     if (input$leaveType == 0) {
       balance <- balance %>% rename(SelectedLeave = EntitledDays)
